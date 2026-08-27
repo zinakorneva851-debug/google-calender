@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Welcome to My App</h1>
+    <a href="{% url 'main' %}">
+        <button class="btn btn-secondary"> Main</button>
+    </a>
+   
+
+    {% if request.user.is_authenticated %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <input type="text" value="" name="title">
+        <input type="text" value="" name="description">
+        <input type="submit" value="Добавить задачу">
+    </form>
+
+    <h3>Список задач:</h3>
+    <div>
+        {% for task in tasks %}
+        <div>
+            {% if task.completed %}
+            <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}" checked>
+            {% else %}
+            <input type="checkbox" class="task-checkbox" data-task-id="{{ task.id }}">
+            {% endif %}
+            <label>{{ task.title }} - {{ task.description }}</label>
+        </div>
+            
+        {% endfor %}
+    </div>
+    
+    
+    {% endif %}
+     
+    <form action="" method="post" id="aiform">
+        {% csrf_token %}
+        <input type="text" value="" name="chatGpt">
+        <input type = "submit" value = "send">
+    </form>
+    <div id="chatgpt-response">
+        
+    </div>
+    <script>
+        const form = document.getElementById('aiform');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent the default form submission behavior
+            document.getElementById('chatgpt-response').innerHTML = "Loading..."; // Show loading message
+            
+            fetch('/request_chatgpt/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({ 'chatgpt': form.elements['chatGpt'].value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('chatgpt-response').innerHTML = `${data.response}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+    </script>
+    <script>
+        const checkBoxes = document.querySelectorAll('.task-checkbox');
+        checkBoxes.forEach((checkBox) => {
+            checkBox.addEventListener('change', (event) => {
+                const taskId = event.target.dataset.taskId;
+                const isChecked = event.target.checked;
+                alert(`Task ID: ${taskId}, Is Completed: ${isChecked}`);
+                fetch(`/update_task_status/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: new URLSearchParams({ 'task_id': taskId, 'is_completed': isChecked })
+                }).then(data => data.json()).then(result => {
+                    alert(result.status);
+                }).catch(error => {
+                    console.error('Error:', error);
+                })
+            })
+        })
+    </script>
+</body>
+
+</html>

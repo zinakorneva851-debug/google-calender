@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>Welcome to My App</h1>
+
+    <a href="{% url 'me' %}">
+        <button class="btn btn-secondary"> O разработчике</button>
+    </a>
+    <a href="{% url 'registration' %}">
+        <button class="btn btn-secondary"> Регистрация</button>
+    </a>
+{% if request.user.is_authenticated %}
+    <a href="{% url 'app' %}">
+        <button class="btn btn-secondary"> app</button>
+    </a>
+    <a href="{% url 'logout' %}">
+        <button class="btn btn-secondary"> logout</button>
+    </a>
+
+   
+
+{% else %}
+ <form action="" method="post">
+        {% csrf_token %}
+        <div>
+            <label for="username">Username:</label>
+            {{ form.username}}
+            {{ form.username.errors }}
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            {{ form.password}}
+            {{ form.password.errors}}
+        </div>
+        <input type="submit" value="send">
+        
+    </form>
+
+{% endif %}
+
+</body>
+
+</html>
