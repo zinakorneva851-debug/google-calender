@@ -1,0 +1,326 @@
+{% extends "main/base.html" %}
+
+{% block title %}Calender — Task Planner{% endblock %}
+{% block nav_app %}active{% endblock %}
+
+{% block head %}
+<!-- FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/all/global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/global.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/skeleton.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/theme.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/palettes/green.css" rel="stylesheet">
+
+<style>
+    :root {
+        --fc-monarch-primary: #000000;
+        --fc-monarch-primary-foreground: #ffffff;
+        --fc-monarch-primary-over: #262626;
+        --fc-monarch-primary-down: #404040;
+
+        --fc-monarch-secondary: #f5f5f5;
+        --fc-monarch-secondary-foreground: #000000;
+        --fc-monarch-secondary-over: #ebebeb;
+        --fc-monarch-secondary-down: #e0e0e0;
+
+        --fc-monarch-tertiary: #404040;
+        --fc-monarch-tertiary-foreground: #ffffff;
+        --fc-monarch-tertiary-over: #525252;
+        --fc-monarch-tertiary-down: #666666;
+
+        --fc-monarch-event: #000000;
+        --fc-monarch-event-contrast: #ffffff;
+        --fc-monarch-highlight: rgba(0, 0, 0, .05);
+        --fc-monarch-now: #b91c1c;
+
+        --fc-monarch-selected: #000000;
+        --fc-monarch-selected-foreground: #ffffff;
+        --fc-monarch-selected-over: #262626;
+        --fc-monarch-selected-down: #404040;
+        --fc-monarch-outline: #000000;
+
+        --fc-monarch-background: #ffffff;
+        --fc-monarch-popover: #ffffff;
+        --fc-monarch-faint: rgba(0, 0, 0, .02);
+        --fc-monarch-muted: rgba(0, 0, 0, .04);
+        --fc-monarch-strong: rgba(0, 0, 0, .08);
+        --fc-monarch-stronger: rgba(0, 0, 0, .10);
+        --fc-monarch-strongest: rgba(0, 0, 0, .12);
+
+        --fc-monarch-foreground: #000000;
+        --fc-monarch-faint-foreground: #bdbdbd;
+        --fc-monarch-muted-foreground: #6b6b6b;
+
+        --fc-monarch-border: #e5e5e5;
+        --fc-monarch-strong-border: #d4d4d4;
+    }
+
+    #calendar {
+        font-size: .875rem;
+    }
+
+
+    .task-row {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .85rem 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .task-row:last-child {
+        border-bottom: 0;
+    }
+
+    .task-row .form-check-input {
+        margin-top: .15rem;
+        flex-shrink: 0;
+    }
+
+    .task-row.is-done .task-title {
+        text-decoration: line-through;
+        color: var(--muted);
+    }
+
+    .task-title {
+        display: block;
+    }
+
+    .task-desc {
+        display: block;
+        font-size: .825rem;
+        color: var(--muted);
+    }
+
+    #chatgpt-response:empty {
+        display: none;
+    }
+
+    #chatgpt-response {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--line);
+        font-size: .9rem;
+        line-height: 1.6;
+    }
+
+    #chatgpt-response p:last-child {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="eyebrow">Planner</span>
+        <h1 class="mt-2 mb-0">My todo's</h1>
+    </div>
+    <span class="text-muted small">{{ tasks|length }} task total</span>
+</div>
+
+<div class="row g-4">
+
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Calender</div>
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-5">
+        {% if request.user.is_authenticated %}
+
+        <div class="card mb-4">
+            <div class="card-header">New task</div>
+            <div class="card-body">
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="task-title">Name</label>
+                        <input type="text" class="form-control" id="task-title" name="title" placeholder="eg ..."
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="task-description">Description</label>
+                        <input type="text" class="form-control" id="task-description" name="description"
+                            placeholder="Describe your task">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="task-date">Date</label>
+                        <input type="datetime-local" class="form-control" id="task-date" name="date"
+                            placeholder="Select a date">
+
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="task-duration">Duration</label>
+                        <input type="text" class="form-control" id="task-duration" name="duration"
+                            placeholder="Select duration in minutes">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add event</button>
+
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">To do list</div>
+            <div class="card-body">
+                {% for task in tasks %}
+                <div class="task-row {% if task.completed %}is-done{% endif %}">
+                    <input type="checkbox" class="form-check-input task-checkbox" id="task-{{ task.id }}"
+                        data-task-id="{{ task.id }}" {% if task.completed %}checked{% endif %}>
+                    <label class="flex-grow-1" for="task-{{ task.id }}">
+                        <span class="task-title">{{ task.title }}</span>
+                        <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        {% if task.description %}
+                        <span class="task-desc">{{ task.description }}</span>
+
+                        {% endif %}
+                    </label>
+                </div>
+                {% empty %}
+                <p class="text-muted mb-0">For now this is empty, add more above</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% else %}
+
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <p class="text-muted mb-4">Log in to view your tasks </p>
+                <a href="{% url 'main' %}" class="btn btn-primary">Log in</a>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">AI buddy</div>
+            <div class="card-body">
+                <form action="" method="post" id="aiform">
+                    {% csrf_token %}
+                    <div class="row g-2">
+                        <div class="col">
+                            <label class="form-label visually-hidden" for="chatGpt">Question</label>
+                            <input type="text" class="form-control" id="chatGpt" name="chatGpt"
+                                placeholder="ask me a quetion.." required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">Send</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="chatgpt-response"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function fmt(date) {
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        var calendarEl = document.getElementById("calendar");
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            headerToolbar: { center: 'dayGridMonth,timeGridWeek,dayGridDay' },
+            events: { url: '/getcalender_events/' },
+            initialView: "timeGridWeek",
+            nowIndicator: true,
+            slotDuration: "00:30:00",
+            snapDuration: "00:15:00",
+
+            selectable: true,
+            selectMirror: true,
+            editable: true,
+
+
+            select: function (info) {
+                const pad = n => String(n).padStart(2, '0');
+                const toLocal = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` + `T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                document.getElementById('task-date').value = toLocal(info.start);
+                document.getElementById('task-duration').value = (info.end - info.start) / 60000;
+            },
+
+
+
+            eventClick: function (info) {
+                console.log('Event: ' + info.event.id);
+                console.log('Coordinates: ' + info.jsEvent.pageX + ',' + info.jsEvent.pageY);
+                console.log('View: ' + info.view.type);
+
+                fetch(`/get_event/${info.event.id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        alert('Event duration: ' + data.duration + ' minutes');
+                    })
+
+            }
+
+        });
+        calendar.render();
+    });
+</script>
+
+<script>
+    const form = document.getElementById('aiform');
+    const responseBox = document.getElementById('chatgpt-response');
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        responseBox.innerHTML = '<span class="text-muted">Загрузка…</span>';
+
+        fetch('/request_chatgpt/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({ 'chatgpt': form.elements['chatGpt'].value })
+        })
+            .then(response => response.json())
+            .then(data => {
+                responseBox.innerHTML = data.response;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                responseBox.innerHTML = '<span class="errorlist">could not load the answer</span>';
+            });
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.task-checkbox').forEach((checkBox) => {
+        checkBox.addEventListener('change', (event) => {
+            const taskId = event.target.dataset.taskId;
+            const isChecked = event.target.checked;
+
+            fetch('/update_task_status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({ 'task_id': taskId, 'is_completed': isChecked })
+            })
+                .then(data => data.json())
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    });
+</script>
+
+{% endblock %}

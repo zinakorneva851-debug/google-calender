@@ -1,0 +1,338 @@
+ {% extends "main/base.html" %}
+
+{% block title %}Calender — Task Planner{% endblock %}
+{% block nav_app %}active{% endblock %}
+
+{% block head %}
+<!-- FullCalendar -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/all/global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/global.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/skeleton.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/theme.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/monarch/palettes/green.css" rel="stylesheet">
+
+<style>
+
+    :root {
+        --fc-monarch-primary: #000000;
+        --fc-monarch-primary-foreground: #ffffff;
+        --fc-monarch-primary-over: #262626;
+        --fc-monarch-primary-down: #404040;
+
+        --fc-monarch-secondary: #f5f5f5;
+        --fc-monarch-secondary-foreground: #000000;
+        --fc-monarch-secondary-over: #ebebeb;
+        --fc-monarch-secondary-down: #e0e0e0;
+
+        --fc-monarch-tertiary: #404040;
+        --fc-monarch-tertiary-foreground: #ffffff;
+        --fc-monarch-tertiary-over: #525252;
+        --fc-monarch-tertiary-down: #666666;
+
+        --fc-monarch-event: #000000;
+        --fc-monarch-event-contrast: #ffffff;
+        --fc-monarch-highlight: rgba(0, 0, 0, .05);
+        --fc-monarch-now: #b91c1c;
+
+        --fc-monarch-selected: #000000;
+        --fc-monarch-selected-foreground: #ffffff;
+        --fc-monarch-selected-over: #262626;
+        --fc-monarch-selected-down: #404040;
+        --fc-monarch-outline: #000000;
+
+        --fc-monarch-background: #ffffff;
+        --fc-monarch-popover: #ffffff;
+        --fc-monarch-faint: rgba(0, 0, 0, .02);
+        --fc-monarch-muted: rgba(0, 0, 0, .04);
+        --fc-monarch-strong: rgba(0, 0, 0, .08);
+        --fc-monarch-stronger: rgba(0, 0, 0, .10);
+        --fc-monarch-strongest: rgba(0, 0, 0, .12);
+
+        --fc-monarch-foreground: #000000;
+        --fc-monarch-faint-foreground: #bdbdbd;
+        --fc-monarch-muted-foreground: #6b6b6b;
+
+        --fc-monarch-border: #e5e5e5;
+        --fc-monarch-strong-border: #d4d4d4;
+    }
+
+    #calendar {
+        font-size: .875rem;
+    }
+
+    /* Список задач */
+    .task-row {
+        display: flex;
+        align-items: flex-start;
+        gap: .75rem;
+        padding: .85rem 0;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .task-row:last-child { border-bottom: 0; }
+    .task-row .form-check-input { margin-top: .15rem; flex-shrink: 0; }
+    .task-row.is-done .task-title { text-decoration: line-through; color: var(--muted); }
+    .task-title { display: block; }
+    .task-desc { display: block; font-size: .825rem; color: var(--muted); }
+
+   
+    .task-open {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .task-open:hover .task-title { text-decoration: underline; }
+    .task-open:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-4">
+    <div>
+        <span class="eyebrow">Planner</span>
+        <h1 class="mt-2 mb-0">My todo's</h1>
+    </div>
+    <span class="text-muted small">{{ tasks|length }} task total</span>
+</div>
+
+<div class="row g-4">
+
+   
+    
+    <div class="col-lg-12 d-flex gap-4">
+        {% if request.user.is_authenticated %}
+
+        
+        <div class="card col-lg-6">
+            <div class="card-header">To do list</div>
+            <div class="card-body">
+                {% for task in tasks %}
+                <div class="task-row {% if task.completed %}is-done{% endif %}">
+                    <input type="checkbox" class="form-check-input task-checkbox"
+                    id="task-{{ task.id }}" data-task-id="{{ task.id }}"
+                    {% if task.completed %}checked{% endif %}>
+                    <button type="button" class="task-open flex-grow-1"
+                    data-bs-toggle="modal" data-bs-target="#subtasks-{{ task.id }}">
+                    <span class="task-title">{{ task.title }}</span>
+                    {% if task.description %}
+                    <span class="task-desc">{{ task.description }}</span>
+                    {% endif %}
+                </button>
+            </div>
+            {% empty %}
+            <p class="text-muted mb-0">For now this is empty, add more above</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="card col-lg-6" >
+        <div class="card-header">New task</div>
+        <div class="card-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="task-title">Name</label>
+                    <input type="text" class="form-control" id="task-title" name="title"
+                           placeholder="eg ..." required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="task-description">Description</label>
+                    <input type="text" class="form-control" id="task-description" name="description"
+                           placeholder="Describe your task">
+                </div>
+                <div class="mb-3"> 
+                 <label class="form-label" for="task-date">Date</label>
+                    <input type="datetime-local" class="form-control" id="task-date" name="date"
+                           placeholder="Select a date">
+                    
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="task-duration">Duration</label>
+                    <input type="text" class="form-control" id="task-duration" name="duration"
+                           placeholder="Select duration in minutes">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Add event</button>
+
+            </form>
+        </div>
+    </div>
+    {% else %}
+    
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <p class="text-muted mb-4">Log in to view your tasks </p>
+                <a href="{% url 'main' %}" class="btn btn-primary">Log in</a>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+
+</div>
+
+
+{% for task in tasks %}
+<div class="modal fade" id="subtasks-{{ task.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">{{ task.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                {% if task.description %}
+                <p class="text-muted">{{ task.description }}</p>
+                {% endif %}
+
+                 <form class="mb-4" action="{% url 'update_subtask' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="title"
+                               placeholder="New subtask..." required>
+
+                        <button type="submit" class="btn btn-outline-secondary">Add</button>
+                    </div>
+                </form>
+
+             <h6 class="mb-3">Subtasks</h6>
+                {% for subtask in task.subtasks.all %}
+                <div class="card mb-3">
+                    <div class="card-body">
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input subtask-checkbox"
+                                   id="subtask-{{ subtask.id }}" data-subtask-id="{{ subtask.id }}"
+                                   {% if subtask.completed %}checked{% endif %}>
+                            <label class="form-check-label" for="subtask-{{ subtask.id }}">Done</label>
+                        </div>
+
+                        <form action="{% url 'update_subtask' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="subtask_id" value="{{ subtask.id }}">
+
+                            <div class="mb-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" name="title"
+                                       value="{{ subtask.title }}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" name="description"
+                                          rows="2">{{ subtask.description|default_if_none:'' }}</textarea>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label">Priority level</label>
+                                    <select class="form-select" name="priority_level">
+                                        <option value="">—</option>
+                                        <option value="1" {% if subtask.priority_level == 1 %}selected{% endif %}>1 — Low</option>
+                                        <option value="2" {% if subtask.priority_level == 2 %}selected{% endif %}>2 — Medium</option>
+                                        <option value="3" {% if subtask.priority_level == 3 %}selected{% endif %}>3 — High</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label">Dress code</label>
+                                    <input type="text" class="form-control" name="dresscode"
+                                           value="{{ subtask.dresscode|default_if_none:'' }}"
+                                           placeholder="optional (e.g casual, formal)" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Checklist (one item per line)</label>
+                                <textarea class="form-control" name="checklist"
+                                          rows="3">{{ subtask.checklist|default_if_none:'' }}</textarea>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="button" class="btn btn-outline-danger">Delete</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No subtasks yet.</p>
+                {% endfor %}
+
+               
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+
+
+
+
+<script>
+    document.querySelectorAll('.task-checkbox').forEach((checkBox) => {
+        checkBox.addEventListener('change', (event) => {
+            const taskId = event.target.dataset.taskId;
+            const isChecked = event.target.checked;
+
+            fetch('/update_task_status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({ 'task_id': taskId, 'is_completed': isChecked })
+            })
+            .then(data => data.json())
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.subtask-checkbox').forEach((checkBox) => {
+        checkBox.addEventListener('change', (event) => {
+            const subtaskId = event.target.dataset.subtaskId;
+            const isChecked = event.target.checked;
+
+            fetch('/toggle_subtask/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({ 'subtask_id': subtaskId, 'is_completed': isChecked })
+            })
+            .then(data => data.json())
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+
+<form 
+{% endblock %}
+ 
+  
+  
+ 

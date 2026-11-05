@@ -1,32 +1,38 @@
-"""
-URL configuration for google_calender project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.contrib.admin import views
 from django.urls import path
 
-from main.views import main, me, update_task_status, app_view, registration_view, logout_view, request_chatgpt
+from main.views import (
+    main,
+    me,
+    toggle_subtask,
+    update_task_status,
+    screen3_view,
+    registration_view,
+    logout_view,
+    request_chatgpt,
+    getcalender_events,
+    screen4_view,
+    subtask_update,
+    delete_task,
+    get_event
+)
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', main, name='main'),
-    path('me/', me, name='me'),
+    path("admin/", admin.site.urls),
+    path("", main, name="main"),
+    path("me/", me, name="me"),
     path("update_task_status/", update_task_status, name="update_task_status"),
-    path("app/", app_view, name="app"),
+    path("screen3/", screen3_view, name="screen3"),
     path("registration/", registration_view, name="registration"),
     path("logout/", logout_view, name="logout"),
-    path("request_chatgpt/", request_chatgpt, name="request_chatgpt")
+    path("request_chatgpt/", request_chatgpt, name="request_chatgpt"),
+    path("getcalender_events/", getcalender_events, name="getcalender_events"),
+    path("screen4/", screen4_view, name="screen4"),
+    path("toggle_subtask/", toggle_subtask, name="toggle_subtask"),
+    path("subtask_update/", subtask_update, name="update_subtask"),
+    # delete_task/task_id
+    path("delete_task/<int:task_id>/", delete_task, name="delete_task"), #dynamic URL
+    path("get_event/<int:task_id>/", get_event, name="get_event"),
 ]

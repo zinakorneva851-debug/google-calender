@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Task Planner{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+    
+        :root {
+            --line: #e5e5e5;
+            --line-strong: #d4d4d4;
+            --muted: #6b6b6b;
+            --surface: #fafafa;
+
+            --bs-body-bg: #ffffff;
+            --bs-body-color: #000000;
+            --bs-body-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --bs-body-font-size: 0.95rem;
+            --bs-body-font-weight: 400;
+            --bs-border-color: var(--line);
+            --bs-border-radius: 6px;
+            --bs-border-radius-sm: 4px;
+            --bs-border-radius-lg: 8px;
+            --bs-link-color: #000000;
+            --bs-link-color-rgb: 0, 0, 0;
+            --bs-link-hover-color: #000000;
+            --bs-link-hover-color-rgb: 0, 0, 0;
+            --bs-emphasis-color: #000000;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #000000;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #000000;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        h1 { font-size: 1.9rem; }
+        h2 { font-size: 1.4rem; }
+        h3 { font-size: 1.15rem; }
+
+        a { color: #000000; text-decoration: none; }
+        a:hover { color: #000000; text-decoration: underline; }
+
+        /* Ссылки внутри текста — подчёркнутые, чтобы их было видно */
+        p a,
+        .card-body p a {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            text-decoration-color: var(--line-strong);
+        }
+
+        p a:hover { text-decoration-color: #000000; }
+
+        .text-muted { color: var(--muted) !important; }
+
+        /* Кнопки: чёрное на белом */
+        .btn {
+            --bs-btn-font-weight: 400;
+            --bs-btn-padding-y: .5rem;
+            --bs-btn-padding-x: 1rem;
+            box-shadow: none !important;
+        }
+
+        .btn-primary {
+            --bs-btn-bg: #000000;
+            --bs-btn-border-color: #000000;
+            --bs-btn-color: #ffffff;
+            --bs-btn-hover-bg: #262626;
+            --bs-btn-hover-border-color: #262626;
+            --bs-btn-hover-color: #ffffff;
+            --bs-btn-active-bg: #000000;
+            --bs-btn-active-border-color: #000000;
+            --bs-btn-disabled-bg: #737373;
+            --bs-btn-disabled-border-color: #737373;
+        }
+
+        .btn-outline-primary,
+        .btn-outline-secondary {
+            --bs-btn-color: #000000;
+            --bs-btn-border-color: var(--line-strong);
+            --bs-btn-bg: #ffffff;
+            --bs-btn-hover-color: #000000;
+            --bs-btn-hover-bg: var(--surface);
+            --bs-btn-hover-border-color: #000000;
+            --bs-btn-active-color: #000000;
+            --bs-btn-active-bg: #f0f0f0;
+            --bs-btn-active-border-color: #000000;
+        }
+
+        .btn-link {
+            --bs-btn-color: var(--muted);
+            --bs-btn-hover-color: #000000;
+        }
+
+        /* Карточки: плоские, только тонкая рамка */
+        .card {
+            background-color: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: none;
+        }
+
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--line);
+            padding: .85rem 1.25rem;
+            font-weight: 500;
+            color: #000000;
+        }
+
+        .card-body { padding: 1.25rem; }
+
+        /* Поля ввода */
+        .form-control,
+        .form-select {
+            border-color: var(--line-strong);
+            border-radius: 6px;
+            padding: .5rem .75rem;
+            color: #000000;
+        }
+
+        .form-control::placeholder { color: #a3a3a3; }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #000000;
+            box-shadow: none;
+        }
+
+        .form-label {
+            font-size: .875rem;
+            color: var(--muted);
+            margin-bottom: .35rem;
+        }
+
+        .form-check-input {
+            border-color: var(--line-strong);
+        }
+
+        .form-check-input:checked {
+            background-color: #000000;
+            border-color: #000000;
+        }
+
+        .form-check-input:focus {
+            border-color: #000000;
+            box-shadow: none;
+        }
+
+        /* Навигация */
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--line);
+            padding-top: .85rem;
+            padding-bottom: .85rem;
+        }
+
+        .navbar-brand {
+            font-weight: 500;
+            font-size: 1rem;
+            color: #000000;
+            letter-spacing: -0.01em;
+        }
+
+        .navbar-brand:hover { color: #000000; text-decoration: none; }
+
+        .navbar .nav-link {
+            color: var(--muted);
+            font-size: .9rem;
+            padding-left: .85rem;
+            padding-right: .85rem;
+        }
+
+        .navbar .nav-link:hover,
+        .navbar .nav-link.active {
+            color: #000000;
+            text-decoration: none;
+        }
+
+        /* Мелочи */
+        .eyebrow {
+            display: inline-block;
+            font-size: .75rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: .3rem .7rem;
+            font-size: .8rem;
+            color: #000000;
+            background-color: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: .825rem;
+        }
+
+        hr { border-color: var(--line); opacity: 1; }
+
+        /* Ошибки форм Django (<ul class="errorlist">) */
+        .errorlist {
+            list-style: none;
+            margin: .4rem 0 0;
+            padding: 0;
+            color: #b91c1c;
+            font-size: .825rem;
+        }
+    </style>
+
+    {% block head %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'main' %}">Task&nbsp;Planner</a>
+
+            <button class="navbar-toggler border-0 shadow-none py-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_main %}{% endblock %}" href="{% url 'main' %}">Main</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_me %}{% endblock %}" href="{% url 'me' %}">Ab me</a>
+                    </li>
+
+                    {% if request.user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_screen3 %}{% endblock %}" href="{% url 'screen3' %}">Calender</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_screen4 %}{% endblock %}" href="{% url 'screen4' %}">Tasks Overview</a>
+                    </li>
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn btn-outline-secondary btn-sm" href="{% url 'logout' %}">Log out</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item ms-lg-3">
+                        <a class="btn btn-primary btn-sm" href="{% url 'registration' %}">Register</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow-1 py-4 py-lg-5">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+   
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
