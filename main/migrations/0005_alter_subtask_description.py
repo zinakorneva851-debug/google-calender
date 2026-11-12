@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('main', '0004_subtask_checklist_subtask_dresscode_and_more'),
+        ('main', '0003_subtask'),
     ]
 
     operations = [
