@@ -228,6 +228,18 @@
     </style>
 
     {% block head %}{% endblock %}
+    <script>
+    const taskDateInput = document.getElementById('task-date');
+
+    if (taskDateInput?.form) {
+        taskDateInput.form.addEventListener('formdata', ({ formData }) => {
+            if (taskDateInput.value) {
+                const start = new Date(taskDateInput.value);
+                formData.set('date', start.toISOString());
+            }
+        });
+    }
+</script>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
