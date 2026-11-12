@@ -162,6 +162,14 @@
                         <input type="text" class="form-control" id="task-duration" name="duration"
                             placeholder="Select duration in minutes">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="task-priority">Priority</label>
+                        <select class="form-select" id="task-priority" name="priority">
+                            <option value="1">Low</option>
+                            <option value="2">Medium</option>
+                            <option value="3">High</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">Add event</button>
 
                 </form>
@@ -264,7 +272,7 @@
                 fetch(`/get_event/${info.event.id}`)
                     .then(response => response.json())
                     .then(data => {
-                        alert('Event duration: ' + data.duration + ' minutes');
+                        alert('Event priority level: ' + data.priority_level);
                     })
 
             }

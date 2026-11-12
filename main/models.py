@@ -12,6 +12,7 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     start_datetime = models.DateTimeField(null=True, blank=True)
     duration = models.IntegerField(null=True, blank=True)
+    priority_level = models.IntegerField(default=1)
 
     def __str__(self):
         return f'{self.id}: {self.title}'
